@@ -1,40 +1,85 @@
-# Pricing the Impermanent
+# Pricing the Impermanent 🩸
 
-**An Option-Implied Framework for Hedging Uniswap v3 Liquidity-Provider Loss**
+### *or: how to stop getting **rekt** as a Uniswap v3 liquidity provider*
 
-Charles G. Belford · On-chain data: Dune Analytics · June 2026
+> **gm ser.** You aped into an LP position for that juicy fee APR. The arbitragoors said *thank you*.
+> This repo measures the bleeding, prices the antidote off the options smile, and shows — in dollars —
+> what hedging your impermanent loss would actually have done.
 
-📄 **[Read the paper →](Pricing-the-Impermanent_Uniswap-v3-IL-Hedging_Jun26.pdf)**
+📄 **[Read the full paper — 6 pages, neon-on-black, all charts inside →](Pricing-the-Impermanent_Uniswap-v3-IL-Hedging_Jun26.pdf)**
 
 ---
 
-## Summary
+## TL;DR
 
-Topaz Blue & Bancor (2021) showed that, in aggregate, Uniswap v3 liquidity providers (LPs)
-lost more to impermanent loss (IL) than they earned in fees — an empirical, backward-looking
-diagnosis. This work extends it three ways:
+Providing liquidity on Uniswap v3 is a **short-gamma** trade wearing a yield-farm costume. You're short
+convexity, long fees, and every time price moves an **arbitrageur rebalances your bag against you**. We:
 
-1. **An independent, position-level re-measurement** across five major ETH pools confirms the
-   result — **$50.7m of IL across 27,529 closed positions, every pool negative** — using a
-   cleaner estimator built on NonfungiblePositionManager token-IDs, valued at each position's
-   exact exit-minute price.
-2. **IL is formalised as a short-gamma options position** and the protection is priced off the
-   live Deribit volatility surface via SABR-calibrated static (Carr–Madan) replication, treating
-   the capped "Limited" (V3L) product as a **first-passage barrier**, not a European condor.
-3. **The rebalancing "gamma bleed"** the original authors flagged as future work is quantified
-   with a Monte-Carlo calibrated to realised volatility, fee APR, and TVL computed live on
-   **Dune Analytics**.
+1. **Re-measure the carnage** on-chain — position by position, no hand-waving.
+2. **Price the antidote** off the Deribit vol surface — static snapshot (SABR + Carr–Madan static replication).
+3. **Show the dollars** — hedged vs unhedged, on real-shaped positions.
 
-The result is a forward-looking, market-implied framework for pricing and hedging LP loss, with
-a concrete fee-cover/breakeven table for the product economics.
+Spoiler: the loss is a *priced, tradeable* exposure. You can buy protection and **pay for it out of fees**.
 
-## Key result
+---
 
-Across **27,529** real closed single-cycle LP positions (held ≥ 1 day) in five flagship ETH pools,
-measured impermanent loss is **negative in every pool**, totalling **−$50.7m** — a direct,
-position-level confirmation that the unhedged LP loses, and the empirical case for a tradeable IL hedge.
+## 1. The rekt is real 💀
 
-## Acknowledgement
+Across **27,529** real closed LP positions in 5 flagship ETH pools: **−$50.7m of impermanent loss, every
+single pool in the red.** Not vibes — measured position-by-position from NonfungiblePositionManager
+token-IDs, each one priced at its *exact exit-minute*. This independently reproduces the OG **Topaz Blue /
+Bancor** finding that ~half of all v3 LPs underperform just diamond-handing the tokens. The silent killer
+is real, and it doesn't care how concentrated your range is.
 
-Query design, debugging, and exposition were carried out with the assistance of Claude AI (Opus 4.8).
-On-chain data from Dune Analytics. Builds on Topaz Blue & Bancor, *Impermanent Loss in Uniswap v3* (2021).
+## 2. IL is just short gamma (the arbitragoor's free lunch) 🥪
+
+The pool *sells you the winner and buys you the loser* on every swap — a concave payoff, i.e. **short
+gamma**. The protection an LP wants is the mirror image: a long options position. The capped **V3L
+"Limited"** product looks like it caps your downside (and it does), but it's a **path-dependent barrier**,
+not a tidy European condor — and the cap is **asymmetric**: a symmetric 70–130% range locks a *deeper*
+loss on the way down (−10.7%) than up (−6.1%). Ngmi if you assumed symmetry.
+
+## 3. The gamma bleed (death by a thousand rebalances) 🩸
+
+Rebalancing back into range keeps fees flowing — but it **crystallises** the IL and pays gas/slippage every
+exit. At 30 days the drag is tiny (~10 bp); push the horizon to 90 days or tighten the band and it
+**compounds to hundreds of bp**. The "once you rebalance, the loss is no longer impermanent" point the
+original authors flagged — now quantified.
+
+## 4. Hedged vs getting rekt — in actual dollars 💸
+
+Three representative degens (real pool, median size, measured fee APR):
+
+| | position | what happened | unhedged | hedged |
+|---|---|---|---|---|
+| **V2** | full-range fren | +35% pump | +$16 | **+$27** |
+| **V3R** | concentrated chad | −35% dump (uncapped — keeps bleeding) | **−$419** | −$29 |
+| **V3L** | "Limited" cap | −55% nuke (IL frozen at the cap) | **−$1,262** | −$111 |
+
+The hedge never promises number-go-up; it **converts a variable, open-ended IL into a fixed, pre-known
+cost** — financed by fees. It earns its keep exactly where the bleed is worst: tight bands, capped
+products, sharp moves.
+
+---
+
+## What's next → Impermanent **Gain** 📈
+
+The sequel ([23d](https://github.com/grantbelford/DEFI-Impermanent-Gain-Modelling)) flips the trade: modelling
+**Impermanent Gain (IG)**, the long-gamma mirror an LP *buys* to hedge (and a vol trader buys to bet on
+chaos), via the Black–Scholes-tailored LP Greeks of Bardoscia & Nodari (2023). Hedge the LP with IG and
+the book turns **net-long volatility**. wagmi.
+
+## Under the hood 🔧
+
+- **On-chain:** Dune Analytics (Trino SQL) — NFPM token-ID reconstruction, single-cycle ≥1-day filter, exit-minute pricing.
+- **Pricing:** lognormal (β=1) SABR fit to Deribit ETH options → Carr–Madan static option strip; V3L as a first-passage barrier.
+- **Sim:** 40k-path SABR Monte-Carlo, calibrated to realised vol + fee APR + TVL.
+- Methodology + the 8-step debugging saga are in [the paper's appendix](Pricing-the-Impermanent_Uniswap-v3-IL-Hedging_Jun26.pdf).
+
+## Cite / acknowledge
+
+Charles G. Belford · June 2026. Builds on Loesch, Hindman, Welch & Richardson (Topaz Blue & Bancor),
+*Impermanent Loss in Uniswap v3* (2021). On-chain data: Dune Analytics. Query design & exposition
+assisted by Claude (Opus 4.8).
+
+*Not financial advice. DYOR. If you LP unhedged and get rekt, that's on you, ser.* 🫡
