@@ -6,7 +6,7 @@
 > This repo measures the bleeding, prices the antidote off the options smile, and shows — in dollars —
 > what hedging your impermanent loss would actually have done.
 
-📄 **[Read the full paper — 6 pages, neon-on-black, all charts inside →](Pricing-the-Impermanent_Uniswap-v3-IL-Hedging_Jun26.pdf)**
+📄 **[Full Paper →](Pricing-the-Impermanent_Uniswap-v3-IL-Hedging_Jun26.pdf)**
 
 ---
 
