@@ -10,7 +10,7 @@
 
 ## Summary
 
-Providing liquidity on Uniswap v3 is, in risk terms, a short-convexity trade: the LP is long fee income and short gamma, with arbitrageurs rebalancing the position adversely on every price move. The analysis proceeds in three steps:
+Providing liquidity on Uniswap v3 is, in risk terms, a short-convexity trade: the LP is long fee income and short gamma, with arbitrageurs rebalancing the position adversely on every price move. The analysis proceeds in 3 steps:
 
 1. **Measure** impermanent loss on-chain, position by position.
 2. **Price** the offsetting hedge from the Deribit ETH volatility surface (SABR fit with Carr–Madan static replication).
@@ -22,7 +22,7 @@ The central result: impermanent loss is a priced, tradeable exposure that can be
 
 ## 1. The loss is real and measurable
 
-Across **27,529** closed LP positions in five flagship ETH pools, aggregate impermanent loss totals **−$50.7m, with every pool in deficit.** Each position is reconstructed from NonfungiblePositionManager token-IDs and priced at its exact exit-minute. This independently reproduces the Topaz Blue / Bancor finding that roughly half of all v3 LPs underperform simply holding the underlying tokens — a result largely insensitive to range concentration.
+Across **27,529** closed LP positions in 5 flagship ETH pools, aggregate impermanent loss totals **−$50.7m, with every pool in deficit.** Each position is reconstructed from NonfungiblePositionManager token-IDs and priced at its exact exit-minute. This independently reproduces the Topaz Blue / Bancor finding that roughly half of all v3 LPs underperform simply holding the underlying tokens — a result largely insensitive to range concentration.
 
 ## 2. Impermanent loss is short gamma
 
@@ -34,7 +34,7 @@ Rebalancing back into range sustains fee income but converts impermanent loss in
 
 ## 4. Hedged versus unhedged, in dollars
 
-Three representative positions (real pool, median size, measured fee APR):
+3 representative positions (real pool, median size, measured fee APR):
 
 | Position | Scenario | Unhedged | Hedged |
 |---|---|---|---|
